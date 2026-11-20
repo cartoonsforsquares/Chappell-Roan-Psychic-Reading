@@ -19,7 +19,7 @@ const INK = '#2B1022', YELLOW = '#FFE36E', PINK = '#F25FBF', CARD_INK = '#2A1410
 let man, IMG = {}, bgImg, laceImg, btnImg;
 let sc = 1, ox = 0, oy = 0;
 let state = 'idle';                  //idle -> reading -> shown
-let readAt = -99999, cardText = '', isRare = false, deck = [], firstRead = true;
+let readAt = -99999, cardText = '', isRare = false, deck = [], firstRead = true, readingLine = '';
 let energy = 0, rareGlow = 0;        //how hard the hands and orb are going (0..1)
 let sparks = [], pressedAt = -9999;
 
@@ -226,7 +226,7 @@ function drawCard(since) {
   let str = cardText, alpha = 255, shown = Infinity;
   if (state === 'reading') {
     if (since < 300) alpha = 255 * (1 - since / 300);                          //old one fades away
-    else if (since < READ_MS + 100) { str = 'the spirits are typing' + '.'.repeat(1 + floor(since / 350) % 3); alpha = 150; }
+    else if (since < READ_MS + 100) { str = readingLine; alpha = 170; }                //her snark while she reads
     else shown = floor(cardText.length * constrain((since - READ_MS - 100) / REVEAL_MS, 0, 1));
   }
 
@@ -326,6 +326,7 @@ function tellFortune() {
   state = 'reading';
   readAt = millis();
   cardText = nextFortune();
+  readingLine = random(READING_LINES.filter(l => l !== readingLine));   //never the same twice in a row
   firstRead = false;
   setTimeout(() => {
     if (isRare) confetti();

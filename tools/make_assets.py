@@ -75,8 +75,21 @@ bg = Image.open('Assets/Background/Background_Pink.png').convert('RGB')
 save(bg.resize((1920, 1080), Image.LANCZOS), 'background', 80)
 
 # Ask Again button (the user's art, words included)
+# The frame comes without words (and with a see-through middle): fill the oval pink and
+# write "Ask Again" in Charm Bold, the fortune font.
+from PIL import ImageDraw, ImageFont
 btn = Image.open('Assets/Background/Ask Again.png').convert('RGBA')
 btn = btn.crop(btn.getbbox())
+BTN_PINK, BTN_INK = (255, 122, 194, 255), (58, 18, 22, 255)
+walls = btn.getchannel('A').point(lambda a: 255 if a > 140 else 0)      # the black frame lines
+ImageDraw.floodfill(walls, (btn.width // 2, btn.height // 2), 128)       # everything inside the oval
+inside = walls.point(lambda v: 255 if v == 128 else 0)
+fill = Image.new('RGBA', btn.size, BTN_PINK)
+under = Image.new('RGBA', btn.size, (0, 0, 0, 0)); under.paste(fill, (0, 0), inside)
+under.alpha_composite(btn); btn = under
+d = ImageDraw.Draw(btn)
+font = ImageFont.truetype('fonts/Charm-Bold.ttf', round(btn.height * 0.30))
+d.text((btn.width / 2, btn.height / 2), 'Ask Again', font=font, fill=BTN_INK, anchor='mm')
 save(btn.resize((900, round(900 * btn.height / btn.width)), Image.LANCZOS), 'ask-again')
 man['button'] = {'aspect': round(btn.height / btn.width, 4)}
 
