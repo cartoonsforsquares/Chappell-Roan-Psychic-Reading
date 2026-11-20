@@ -11,6 +11,7 @@ const READ_MS = 2900;                //when she starts popping back up
 const RISE_MS = 600;                 //how long the pop back up takes
 const REVEAL_MS = 1000;              //how long the fortune takes to write itself out
 const RARE_CHANCE = 1 / 25;          //golden fortune
+const INTRO_FADE_MS = 650;           //opening frame fade into the game
 const BTN = { x: VW / 2, y: 766, w: 290, h: 106 };   //h follows the Ask Again art's shape
 
 const INK = '#2B1022', YELLOW = '#FFE36E', PINK = '#F25FBF', CARD_INK = '#2A1410';
@@ -18,7 +19,8 @@ const INK = '#2B1022', YELLOW = '#FFE36E', PINK = '#F25FBF', CARD_INK = '#2A1410
 // ---------- State ----------
 let man, IMG = {}, bgImg, laceImg, btnImg;
 let sc = 1, ox = 0, oy = 0;
-let state = 'idle';                  //idle -> reading -> shown
+let state = 'intro';                 //intro -> idle -> reading -> shown
+let introOutAt = 0;                  //when the opening frame started fading away
 let readAt = -99999, cardText = '', isRare = false, deck = [], firstRead = true, readingLine = '';
 let energy = 0, rareGlow = 0;        //how hard the hands and orb are going (0..1)
 let sparks = [], pressedAt = -9999;
@@ -75,7 +77,64 @@ function draw() {
   pop();
   drawButton(now);
   pop();
+
+  //opening frame on top, fading away once tapped
+  if (state === 'intro' || now - introOutAt < INTRO_FADE_MS) {
+    const a = state === 'intro' ? 1 : 1 - easeInOut((now - introOutAt) / INTRO_FADE_MS);
+    drawIntro(t, a);
+  }
 }
+
+// ---------- Opening frame ----------
+//"Welcome to Chappell Roan's Psychic Readings" on the lace card, a glowing orb, and a pulsing
+//Tap to Begin. Drawn over the game so it can fade straight into it.
+function drawIntro(t, a) {
+  drawingContext.save();
+  drawingContext.globalAlpha = a;
+  drawBackground();
+  drawLace(t);
+  push();
+  translate(ox, oy); scale(sc);
+  imageMode(CENTER);
+
+  //title on the lace card
+  const cw = 372, ch = cw * man.pieces.card.h / man.pieces.card.w, cy = 236;
+  image(IMG.card, VW / 2, cy, cw, ch);
+  textFont('Charm'); textAlign(CENTER, CENTER); noStroke(); fill(42, 20, 16);
+  textSize(22); text('Welcome to', VW / 2, cy - 50);
+  const big = (str, y) => { textSize(40); textSize(min(40, 40 * 250 / textWidth(str))); text(str, VW / 2, y); };
+  big("Chappell Roan's", cy - 8);
+  big('Psychic Readings', cy + 38);
+
+  //the orb, glowing and turning slowly, with twinkles around it
+  const oyc = 520, pulse = 1 + 0.05 * sin(t * 1.6);
+  image(IMG.glowY, VW / 2, oyc, 250 * pulse, 245 * pulse);
+  push();
+  translate(VW / 2, oyc + sin(t * 1.2) * 4); rotate(t * 0.08);
+  image(IMG.orb, 0, 0, 132, 132);
+  pop();
+  for (let i = 0; i < 9; i++) {
+    const ang = i * TWO_PI / 9 + t * 0.15, r = 112 + 14 * sin(i * 2.3);
+    const tw = constrain(sin(t * 1.7 + i * 1.9), 0, 1);
+    fill(i % 2 ? color(255, 227, 110, 255 * tw) : color(255, 154, 217, 255 * tw));
+    star(VW / 2 + cos(ang) * r, oyc + sin(ang) * r * 0.85, 7 + 6 * tw, t + i);
+  }
+
+  //tap prompt
+  fill(42, 20, 16, 150 + 105 * (0.5 + 0.5 * sin(t * 3)));
+  textSize(30); text('Tap to Begin', VW / 2, 712);
+  imageMode(CORNER);
+  pop();
+  drawingContext.restore();
+}
+
+function startFromIntro() {
+  if (state !== 'intro') return;
+  state = 'idle';
+  introOutAt = millis();
+}
+
+function easeInOut(x) { x = constrain(x, 0, 1); return x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2; }
 
 // ---------- Scene pieces (reference coordinates) ----------
 function drawPiece(n, dx = 0, dy = 0) {
@@ -350,6 +409,8 @@ function tellFortune() {
 
 // ---------- Input ----------
 function press(px, py) {
+  if (state === 'intro') { startFromIntro(); return; }       //any tap leaves the opening frame
+  if (millis() - introOutAt < INTRO_FADE_MS) return;
   const x = (px - ox) / sc, y = (py - oy) / sc;
   //the button, the orb and the card all ask for a fortune
   const onBtn = abs(x - BTN.x) < BTN.w / 2 + 8 && abs(y - BTN.y) < BTN.h / 2 + 10;
@@ -366,7 +427,10 @@ function touchStarted() {
 }
 function mousePressed() { if (!touches.length) press(mouseX, mouseY); }
 function keyPressed() {
-  if (key === ' ' || keyCode === ENTER) { pressedAt = millis(); tellFortune(); return false; }
+  if (key === ' ' || keyCode === ENTER) {
+    if (state === 'intro') startFromIntro(); else { pressedAt = millis(); tellFortune(); }
+    return false;
+  }
 }
 
 // ---------- Easing ----------
