@@ -121,8 +121,9 @@ function drawIntro(t, a) {
   }
 
   //tap prompt
-  fill(42, 20, 16, 150 + 105 * (0.5 + 0.5 * sin(t * 3)));
-  textSize(30); text('Tap to Begin', VW / 2, 712);
+  //same solid ink as the headline; it pulses in size instead of fading
+  fill(42, 20, 16);
+  textSize(30 * (1 + 0.05 * sin(t * 3))); text('Tap to Begin', VW / 2, 712);
   imageMode(CORNER);
   pop();
   drawingContext.restore();
