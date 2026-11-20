@@ -244,4 +244,4 @@ const READING_LINES = [
   "This one's gonna cost you emotionally.",
 ];
 
-const WELCOME = "Come closer, babe. The orb is warm, the spirits are horny, and I'm ready to read you.";
+const WELCOME = "Hush. The orb is glowing. That means someone gay is about to be very right.";
