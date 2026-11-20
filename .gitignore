@@ -1,0 +1,8 @@
+.DS_Store
+.claude/
+
+# originals and working art stay on this computer (tools/make_assets.py builds img/ from them)
+Assets/
+Photos/
+Working Files/
+*.psd

@@ -1,0 +1,25 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* KC Bubble Shack: the button font */
+@font-face {
+    font-family: 'KCBubbleShack';
+    src: url('../fonts/KCBubbleShack.woff2') format('woff2');
+    font-display: block;
+}
+
+html, body {
+    overflow: hidden;
+    background: #2B0E25;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+canvas {
+    display: block;
+}
