@@ -6,3 +6,7 @@ Assets/
 Photos/
 Working Files/
 *.psd
+
+# drafts for recording videos stay on this computer
+drafts/
+draft-*.html
