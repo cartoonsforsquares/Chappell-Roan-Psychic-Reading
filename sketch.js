@@ -11,12 +11,12 @@ const READ_MS = 2900;                //when she starts popping back up
 const RISE_MS = 600;                 //how long the pop back up takes
 const REVEAL_MS = 1000;              //how long the fortune takes to write itself out
 const RARE_CHANCE = 1 / 25;          //golden fortune
-const BTN = { x: VW / 2, y: 768, w: 262, h: 62 };
+const BTN = { x: VW / 2, y: 766, w: 290, h: 106 };   //h follows the Ask Again art's shape
 
 const INK = '#2B1022', YELLOW = '#FFE36E', PINK = '#F25FBF', CARD_INK = '#2A1410';
 
 // ---------- State ----------
-let man, IMG = {}, bgImg, laceImg;
+let man, IMG = {}, bgImg, laceImg, btnImg;
 let sc = 1, ox = 0, oy = 0;
 let state = 'idle';                  //idle -> reading -> shown
 let readAt = -99999, cardText = '', isRare = false, deck = [], firstRead = true;
@@ -27,6 +27,7 @@ function preload() {
   man = loadJSON('img/manifest.json');
   bgImg = loadImage('img/background.webp');
   laceImg = loadImage('img/lace.webp');
+  btnImg = loadImage('img/ask-again.webp');
   for (const n of ['body', 'glowY', 'glowP', 'table', 'orb', 'handTop', 'handLow', 'card'])
     IMG[n] = loadImage(`img/${n}.webp`);
 }
@@ -220,7 +221,7 @@ function drawCard(since) {
   const c = man.pieces.card;
   drawPiece('card');
   const cx = c.x + c.w / 2, cy = c.y + c.h * 0.515, boxW = c.w * 0.68, boxH = c.h * 0.6;
-  textFont('Yellowtail'); textAlign(CENTER, CENTER); noStroke();
+  textFont('Charm'); textAlign(CENTER, CENTER); noStroke();
 
   let str = cardText, alpha = 255, shown = Infinity;
   if (state === 'reading') {
@@ -238,7 +239,7 @@ function drawCard(since) {
   if (isRare && state !== 'idle' && !(state === 'reading' && since < READ_MS + 100)) {
     textFont('KCBubbleShack'); textSize(46); fill(176, 120, 20, alpha);
     text('GOLDEN PROPHECY', cx, c.y + c.h * 0.2);
-    textFont('Yellowtail'); textSize(size + 2);
+    textFont('Charm'); textSize(size + 2);
   }
 
   fill(42, 20, 16, alpha);
@@ -271,14 +272,15 @@ function wrapLines(str, w) {
 // ---------- Button ----------
 function drawButton(now) {
   const busy = state === 'reading';
-  const down = now - pressedAt < 140 ? 4 : 0;
-  const label = busy ? 'READING...' : firstRead ? 'TELL MY FORTUNE' : 'ASK AGAIN';
+  const pressed = now - pressedAt < 140;
+  const h = BTN.w * man.button.aspect;
   push();
-  translate(BTN.x, BTN.y + down);
-  rectMode(CENTER); stroke(INK); strokeWeight(3.5);
-  fill(INK); rect(-4 + down, 6 - down, BTN.w, BTN.h, 31);          //3D shadow
-  fill(busy ? '#C77AAE' : PINK); rect(0, 0, BTN.w, BTN.h, 31);
-  styledText(label, 0, -2, 25, busy ? '#FFF1C2' : YELLOW);
+  translate(BTN.x, BTN.y + (pressed ? 3 : sin(now / 600) * 2));   //floats gently, dips when tapped
+  scale(pressed ? 0.96 : 1);
+  imageMode(CENTER);
+  if (busy) tint(255, 140);                                         //faded while she reads
+  image(btnImg, 0, 0, BTN.w, h);
+  noTint();
   pop();
 }
 

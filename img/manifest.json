@@ -58,5 +58,8 @@
  },
  "lace": {
   "aspect": 2.373
+ },
+ "button": {
+  "aspect": 0.3669
  }
 }

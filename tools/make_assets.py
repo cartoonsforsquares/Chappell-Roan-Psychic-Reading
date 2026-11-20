@@ -74,6 +74,12 @@ man['lace'] = {'aspect': round(lace.height / lace.width, 3)}
 bg = Image.open('Assets/Background/Background_Pink.png').convert('RGB')
 save(bg.resize((1920, 1080), Image.LANCZOS), 'background', 80)
 
+# Ask Again button (the user's art, words included)
+btn = Image.open('Assets/Background/Ask Again.png').convert('RGBA')
+btn = btn.crop(btn.getbbox())
+save(btn.resize((900, round(900 * btn.height / btn.width)), Image.LANCZOS), 'ask-again')
+man['button'] = {'aspect': round(btn.height / btn.width, 4)}
+
 with open(f'{OUT}/manifest.json', 'w') as fh:
     json.dump(man, fh, indent=1)
 print(json.dumps(man, indent=1))
