@@ -4,13 +4,6 @@
     box-sizing: border-box;
 }
 
-/* KC Bubble Shack: the button font */
-@font-face {
-    font-family: 'KCBubbleShack';
-    src: url('../fonts/KCBubbleShack.woff2') format('woff2');
-    font-display: block;
-}
-
 /* Charm Bold: the fortune font (SIL Open Font License, see fonts/Charm-OFL.txt) */
 @font-face {
     font-family: 'Charm';

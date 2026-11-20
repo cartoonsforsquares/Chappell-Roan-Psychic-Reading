@@ -154,17 +154,39 @@ function drawOrb(t, pk) {
 
 //Both arms swing from the sleeve end. They circle the orb in opposite directions: lazily while
 //she waits, fast and wide while she reads.
+//The hands are the show. Idle: a slow hover around the orb. Reading: they whip around the ball in
+//figure-eights in opposite directions, waggle from the wrist with a spooky finger tremble, and
+//flare out in a big "ta-da!" when she pops back up with the fortune.
 function drawHands(t, pk) {
-  const speed = 1.0 + energy * 3.2;
+  const since = millis() - readAt;
+  const speed = 1.0 + energy * 6.5;
   handPhase += speed * deltaTime / 1000;
-  const R = 6 + energy * 18;
   const a = handPhase;
+  const R = 6 + energy * 34;
+  //wave: two wrist flicks per loop, plus a fast shimmy while she's reading
+  const wave = (0.03 + energy * 0.13);
+  const tremble = sin(t * 19) * 0.03 * energy;
+  //"ta-da": arms flare open as she rises, then settle back
+  let flare = 0;
+  if (state === 'reading' && since > READ_MS - 150 && since < READ_MS + RISE_MS + 250)
+    flare = sin(PI * constrain((since - READ_MS + 150) / (RISE_MS + 400), 0, 1));
+  //anticipation: a quick lift just as she starts to duck
+  const lift = state === 'reading' && since < 260 ? sin(PI * since / 260) : 0;
+
   //hands slide in with the shrinking orb so they keep holding it
   const shrink = (1 - orbCentre(pk).s) * man.orb.r, drop = PEEK_DROP * pk;
-  hand('handTop', R * cos(a) - shrink * 0.3, R * (sin(a) < 0 ? 0.25 : 0.5) * sin(a) + drop + shrink * 0.45,
-    sin(a * 1.1) * (0.03 + energy * 0.04), 1, 0.72);
-  hand('handLow', R * cos(a + PI) + shrink * 0.2, R * 0.5 * sin(a + PI) + drop - shrink * 0.4,
-    sin(a * 1.1 + 1) * (0.03 + energy * 0.04), 0, 0.35);
+  const topY = R * 0.55 * sin(2 * a);
+  //top hand: while she's ducked, it never flicks its fingers up over her eyes
+  let topRot = sin(a * 2) * wave + tremble;
+  if (topRot > 0) topRot *= 1 - 0.85 * pk;
+  hand('handTop',
+    R * cos(a) - shrink * 0.3 + flare * 70,
+    (topY < 0 ? topY * 0.4 : topY) + drop + shrink * 0.45 + pk * 22 - flare * 45 - lift * 30,
+    topRot - flare * 0.22, 1, 0.72);
+  hand('handLow',
+    R * cos(a + PI) + shrink * 0.2 - flare * 70,
+    R * 0.55 * sin(2 * a + PI) + drop - shrink * 0.4 + flare * 40 - lift * 30,
+    sin(a * 2 + 1.3) * wave - tremble + flare * 0.22, 0, 0.35);
 }
 let handPhase = 0;
 
@@ -237,7 +259,7 @@ function drawCard(since) {
   const lh = textSize() * 1.2;
 
   if (isRare && state !== 'idle' && !(state === 'reading' && since < READ_MS + 100)) {
-    textFont('KCBubbleShack'); textSize(46); fill(176, 120, 20, alpha);
+    textFont('Charm'); textSize(50); fill(176, 120, 20, alpha);
     text('GOLDEN PROPHECY', cx, c.y + c.h * 0.2);
     textFont('Charm'); textSize(size + 2);
   }
@@ -282,14 +304,6 @@ function drawButton(now) {
   image(btnImg, 0, 0, BTN.w, h);
   noTint();
   pop();
-}
-
-function styledText(str, x, y, size, fillCol = YELLOW, depth = size * 0.1) {
-  textFont('KCBubbleShack'); textSize(size); textAlign(CENTER, CENTER);
-  stroke(INK); strokeWeight(size * 0.12); strokeJoin(ROUND); fill(INK);
-  for (let i = depth; i > 0; i -= 0.5) text(str, x - i, y + i);
-  fill(fillCol); text(str, x, y);
-  noStroke();
 }
 
 // ---------- Background + lace drapes (window coordinates) ----------
